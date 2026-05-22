@@ -102,6 +102,14 @@
   .chip .c-l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
   .chip .c-v{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:17px;font-weight:600;margin-top:5px;}
 
+  .early-amt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap;}
+  .early-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px;}
+  .early-res{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:13px 15px;}
+  .early-res.good{background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,211,238,.06));border-color:rgba(52,211,153,.4);}
+  .early-res .c-l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+  .early-res .c-v{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:20px;font-weight:700;margin-top:6px;}
+  .early-res.good .c-v{color:var(--emerald);}
+  .early-note{font-size:12.5px;color:var(--muted);margin-top:16px;line-height:1.65;border-top:1px solid var(--border);padding-top:14px;}
   footer{color:var(--muted);font-size:12px;text-align:center;margin-top:34px;line-height:1.7;}
   footer b{color:var(--txt);}
   @media (max-width:640px){.wrap{padding:20px 14px 50px;}.kpi{padding:15px;}.head-right{align-items:flex-start;}}
@@ -157,6 +165,27 @@
     </div>
   </div>
 
+  <div class="panel" id="earlyPanel">
+    <div class="panel-head">
+      <h2 id="earlyTitle">—</h2>
+      <div class="toggle" id="earlyType">
+        <button data-type="etudiant" class="active">—</button>
+        <button data-type="conso">—</button>
+      </div>
+    </div>
+    <div class="toggle" id="earlyLoan" style="margin-bottom:16px"></div>
+    <div>
+      <label class="lbl" id="earlyAmtLbl" style="font-size:12px;color:var(--muted)">—</label>
+      <input type="range" id="earlyAmt" min="0" max="100" value="0" style="margin-top:10px" />
+      <div class="early-amt-row">
+        <span id="earlyAmtVal" class="cursor-date" style="font-size:24px">—</span>
+        <button class="pill-btn" id="earlyFull">—</button>
+      </div>
+    </div>
+    <div class="early-results" id="earlyResults"></div>
+    <div class="early-note" id="earlyNote"></div>
+  </div>
+
   <div class="panel">
     <div class="panel-head"><h2 id="repartTitle">—</h2></div>
     <div class="stack" id="stack"></div>
@@ -208,6 +237,15 @@ const T={
     cNum:"N° de prêt", cFranchise:"Franchise", cMois:(n)=>n+" mois", cCout:"Coût total crédit",
     foot1:"Données extraites des tableaux d'amortissement ", foot1b:" · généré le ",
     foot2:"Outil d'information personnel — les chiffres officiels de vos contrats font foi.",
+    earlyTitle:"Simulation de remboursement anticipé",
+    earlyTypeEtudiant:"Prêt étudiant (gratuit)", earlyTypeConso:"Crédit conso standard",
+    earlyAmt:"Montant remboursé par anticipation — à la date du curseur (glissez pour ajuster)",
+    earlyFull:"Solder en totalité",
+    ePay:"Vous remboursez", eReste:"Reste à devoir après", eSaved:"Intérêts économisés",
+    eIra:"Indemnité anticipée (IRA)", ePaynow:"À payer aujourd'hui", eMonths:"Durée raccourcie",
+    eNewend:"nouvelle fin", eSolde:"Déjà soldé à cette date 🎉", moisWord:"mois",
+    eNoteEtudiant:"Chez LCL, le remboursement anticipé d'un prêt étudiant est gratuit : aucune indemnité, à tout moment, total ou partiel.",
+    eNoteConso:"Crédit conso : aucune indemnité si vous remboursez moins de 10 000 € sur 12 mois. Au-delà, l'indemnité est plafonnée à 1 % du montant remboursé (0,5 % s'il reste moins d'un an), sans jamais dépasser les intérêts restants.",
     months:['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.']
   },
   ka:{
@@ -229,6 +267,15 @@ const T={
     cNum:"სესხის ნომერი", cFranchise:"შეღავათიანი პერიოდი", cMois:(n)=>n+" თვე", cCout:"კრედიტის სრული ღირებულება",
     foot1:"მონაცემები აღებულია ", foot1b:" ამორტიზაციის ცხრილებიდან · შექმნილია ",
     foot2:"პირადი საინფორმაციო ხელსაწყო — ოფიციალური ციფრები იხილეთ თქვენს ხელშეკრულებაში.",
+    earlyTitle:"ვადამდე დაფარვის სიმულაცია",
+    earlyTypeEtudiant:"სტუდენტური სესხი (უფასო)", earlyTypeConso:"სტანდარტული სამომხმარებლო კრედიტი",
+    earlyAmt:"ვადამდე დაფარული თანხა — კურსორის თარიღზე (გადაიტანეთ შესაცვლელად)",
+    earlyFull:"სრულად დაფარვა",
+    ePay:"თქვენ იხდით", eReste:"დარჩენილი ვალი ამის შემდეგ", eSaved:"დაზოგილი პროცენტი",
+    eIra:"ვადამდე დაფარვის საკომისიო", ePaynow:"დღეს გადასახდელი", eMonths:"შემცირებული ვადა",
+    eNewend:"ახალი დასასრული", eSolde:"ამ თარიღისთვის უკვე დაფარულია 🎉", moisWord:"თვე",
+    eNoteEtudiant:"LCL-ში სტუდენტური სესხის ვადამდე დაფარვა უფასოა: საკომისიოს გარეშე, ნებისმიერ დროს, სრულად ან ნაწილობრივ.",
+    eNoteConso:"სამომხმარებლო კრედიტი: საკომისიო არ ირიცხება, თუ 12 თვეში 10 000 €-ზე ნაკლებს დაფარავთ. ამის ზემოთ — მაქს. 1% დაფარული თანხისა (0,5% თუ დასასრულამდე ერთ წელზე ნაკლები რჩება), და არასოდეს აღემატება დარჩენილ პროცენტს.",
     months:['იან.','თებ.','მარ.','აპრ.','მაი.','ივნ.','ივლ.','აგვ.','სექ.','ოქტ.','ნოე.','დეკ.']
   }
 };
@@ -277,6 +324,7 @@ const series=(view,metric)=>TIMELINE.map(d=>{const st=viewState(view,d);return {
 
 /* ---------- state ---------- */
 let VIEW='total', METRIC='capital', IDX=0;
+let earlyLoanIdx=0, earlyType='etudiant', earlyAmount=0, earlyDirty=false;
 const displayed={};
 const KPI=[
   {key:'capitalRestant',color:'var(--violet)',hero:true},
@@ -335,7 +383,7 @@ function render(){
   cs.replaceChildren(h('span',{class:'sdot'}), isNow?L.atToday:L.notToday);
   document.getElementById('todayBtn').classList.toggle('attn',!isNow);
 
-  renderRepart(st); renderInfo(); moveCursor();
+  renderRepart(st); renderInfo(); renderEarly(); moveCursor();
 }
 
 function renderRepart(st){
@@ -369,6 +417,72 @@ function renderInfo(){
       chip(L.cTaeg,pctf(m.taeg)),chip(L.cFranchise,L.cMois(m.franchise)),chip(L.cDebutDate,m.debut),
       chip(L.cDerniere,toDate(l.rows[l.rows.length-1].date)),chip(L.cCout,eur(m.cout_total)));
   }
+}
+
+/* ---------- early repayment simulation ---------- */
+function computeEarly(loan,dateISO,amount,type){
+  const C=stateAt(loan,dateISO).capitalRestant;
+  if(C<=0) return null;                                  // déjà soldé à cette date
+  amount=Math.min(Math.max(0,amount),C);
+  const newC=C-amount;
+  const r=loan.meta.taux/100/12;                         // taux mensuel
+  const future=loan.rows.filter(x=>x.date>dateISO);
+  const oldRemInterest=future.reduce((a,x)=>a+x.interets,0);
+  const oldRemMonths=future.length;
+  const next=future[0];
+  const P=next?(next.montant-next.assurance):0;          // part capital+intérêts de la mensualité
+  let newRemInterest=0,newMonths=0;
+  if(newC>0){
+    if(P>0 && r>0 && P>newC*r){                          // ré-amortissement à mensualité constante
+      newMonths=Math.ceil(-Math.log(1-r*newC/P)/Math.log(1+r));
+      newRemInterest=Math.max(0,newMonths*P-newC);
+    }else{                                               // repli (ex. en franchise) : estimation prorata
+      newMonths=oldRemMonths; newRemInterest=oldRemInterest*(newC/C);
+    }
+  }
+  const interestSaved=Math.max(0,oldRemInterest-newRemInterest);
+  const monthsSaved=Math.max(0,oldRemMonths-newMonths);
+  let ira=0;                                             // indemnité de remboursement anticipé
+  if(type==='conso' && amount>10000){
+    ira=Math.min(amount*(oldRemMonths>12?0.01:0.005), interestSaved);
+  }
+  let newEnd=null;
+  if(newC>0 && future.length){const di=new Date(dateISO); di.setMonth(di.getMonth()+newMonths);
+    newEnd=`${di.getFullYear()}-${String(di.getMonth()+1).padStart(2,'0')}-${String(di.getDate()).padStart(2,'0')}`;}
+  return {amount,newC,interestSaved,monthsSaved,ira,payNow:amount+ira,newEnd};
+}
+function buildEarlyLoan(){
+  const btns=LOANS.map((l,i)=>{const btn=h('button',{'data-i':i},loanLabel(l));
+    btn.classList.toggle('active',i===earlyLoanIdx);
+    btn.onclick=()=>{earlyLoanIdx=i; earlyDirty=false;
+      document.querySelectorAll('#earlyLoan button').forEach(x=>x.classList.toggle('active',x===btn)); renderEarly();};
+    return btn;});
+  document.getElementById('earlyLoan').replaceChildren(...btns);
+}
+function renderEarly(){
+  const L=tr(), loan=LOANS[earlyLoanIdx], date=TIMELINE[IDX];
+  const C=stateAt(loan,date).capitalRestant;
+  document.getElementById('earlyAmtLbl').textContent=L.earlyAmt;
+  const sl=document.getElementById('earlyAmt');
+  sl.max=Math.max(1,Math.round(C)); sl.step=50;
+  if(!earlyDirty) earlyAmount=C;
+  earlyAmount=Math.min(Math.max(0,earlyAmount),C);
+  sl.value=earlyAmount;
+  const frac=C>0?earlyAmount/C*100:0;
+  sl.style.setProperty('--track',`linear-gradient(90deg,var(--emerald) 0%,var(--cyan) ${frac}%,rgba(255,255,255,.12) ${frac}%)`);
+  document.getElementById('earlyAmtVal').textContent=eur(earlyAmount);
+  const res=computeEarly(loan,date,earlyAmount,earlyType);
+  const host=document.getElementById('earlyResults'), note=document.getElementById('earlyNote');
+  if(!res){host.replaceChildren(h('div',{class:'early-res good'},h('div',{class:'c-l'},'•'),h('div',{class:'c-v'},L.eSolde))); note.textContent=''; return;}
+  const card=(l,v,good)=>h('div',{class:'early-res'+(good?' good':'')},h('div',{class:'c-l'},l),h('div',{class:'c-v'},v));
+  host.replaceChildren(
+    card(L.ePay,eur(res.amount)),
+    card(L.eReste,eur(res.newC)),
+    card(L.eSaved,eur(res.interestSaved),true),
+    card(L.eIra,eur(res.ira)),
+    card(L.ePaynow,eur(res.payNow),true),
+    card(L.eMonths, res.monthsSaved+' '+L.moisWord+(res.newEnd?` · ${L.eNewend} : ${toDate(res.newEnd)}`:'')));
+  note.textContent = earlyType==='etudiant'?L.eNoteEtudiant:L.eNoteConso;
 }
 
 /* ---------- chart ---------- */
@@ -463,6 +577,11 @@ function refreshTexts(){
     h('span',{class:'badge'},'👤 ',b(LOAN_DATA.emprunteurs.join(' & '))),
     h('span',{class:'badge'},'🏦 ',b(LOAN_DATA.preteur)));
   document.getElementById('foot').replaceChildren(L.foot1,b('LCL'),L.foot1b+toDate(GENERATED)+'.',h('br'),L.foot2);
+  document.getElementById('earlyTitle').textContent=L.earlyTitle;
+  document.querySelector('#earlyType button[data-type=etudiant]').textContent=L.earlyTypeEtudiant;
+  document.querySelector('#earlyType button[data-type=conso]').textContent=L.earlyTypeConso;
+  document.getElementById('earlyFull').textContent=L.earlyFull;
+  buildEarlyLoan();
   buildSeg(); buildKpis(); renderChart(); render();
 }
 
@@ -475,6 +594,12 @@ function init(){
   document.querySelectorAll('#metricToggle button').forEach(btn=>btn.onclick=()=>{
     document.querySelectorAll('#metricToggle button').forEach(x=>x.classList.toggle('active',x===btn));
     renderChart();});
+  document.querySelectorAll('#earlyType button').forEach(btn=>btn.onclick=()=>{
+    earlyType=btn.dataset.type; earlyDirty=false;
+    document.querySelectorAll('#earlyType button').forEach(x=>x.classList.toggle('active',x===btn));
+    renderEarly();});
+  document.getElementById('earlyAmt').oninput=(e)=>{earlyAmount=parseFloat(e.target.value); earlyDirty=true; renderEarly();};
+  document.getElementById('earlyFull').onclick=()=>{earlyDirty=false; renderEarly();};
   const sl=document.getElementById('slider');
   sl.min=0; sl.max=TIMELINE.length-1;
   sl.oninput=()=>{IDX=parseInt(sl.value);render();};
