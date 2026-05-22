@@ -425,31 +425,38 @@ function computeEarly(loan,dateISO,amount,type){
   if(C<=0) return null;                                  // déjà soldé à cette date
   amount=Math.min(Math.max(0,amount),C);
   const newC=C-amount;
-  const r=loan.meta.taux/100/12;                         // taux mensuel
-  const future=loan.rows.filter(x=>x.date>dateISO);
+  const future=loan.rows.filter(x=>x.date>dateISO);      // échéances restantes du tableau réel
   const oldRemInterest=future.reduce((a,x)=>a+x.interets,0);
   const oldRemMonths=future.length;
-  const next=future[0];
-  const P=next?(next.montant-next.assurance):0;          // part capital+intérêts de la mensualité
-  let newRemInterest=0,newMonths=0;
-  if(newC>0){
-    if(P>0 && r>0 && P>newC*r){                          // ré-amortissement à mensualité constante
-      newMonths=Math.ceil(-Math.log(1-r*newC/P)/Math.log(1+r));
-      newRemInterest=Math.max(0,newMonths*P-newC);
-    }else{                                               // repli (ex. en franchise) : estimation prorata
-      newMonths=oldRemMonths; newRemInterest=oldRemInterest*(newC/C);
+
+  // Méthode "tableau réel" : on repère le point où le capital restant d'origine
+  // vaut newC ; à mensualité/taux constants, la suite réplique le tableau à partir
+  // de là. Les intérêts économisés = intérêts des échéances "sautées" (interpolées).
+  let interestSaved=0, monthsSaved=0;
+  if(amount>0 && future.length){
+    let prevCr=C, j=future.length-1, frac=1;
+    for(let i=0;i<future.length;i++){
+      if(future[i].capital_restant<=newC){
+        j=i; const denom=prevCr-future[i].capital_restant;
+        frac = denom>0 ? (prevCr-newC)/denom : 0; break;
+      }
+      prevCr=future[i].capital_restant;
     }
+    for(let i=0;i<j;i++) interestSaved+=future[i].interets; // échéances entièrement sautées
+    interestSaved += frac*future[j].interets;               // fraction de l'échéance limite
+    monthsSaved = j + frac;
   }
-  const interestSaved=Math.max(0,oldRemInterest-newRemInterest);
-  const monthsSaved=Math.max(0,oldRemMonths-newMonths);
+  interestSaved=Math.max(0,Math.min(interestSaved,oldRemInterest));
+  const newRemMonths=Math.max(0,oldRemMonths-monthsSaved);
+
   let ira=0;                                             // indemnité de remboursement anticipé
   if(type==='conso' && amount>10000){
     ira=Math.min(amount*(oldRemMonths>12?0.01:0.005), interestSaved);
   }
   let newEnd=null;
-  if(newC>0 && future.length){const di=new Date(dateISO); di.setMonth(di.getMonth()+newMonths);
+  if(newC>0){const di=new Date(dateISO); di.setMonth(di.getMonth()+Math.round(newRemMonths));
     newEnd=`${di.getFullYear()}-${String(di.getMonth()+1).padStart(2,'0')}-${String(di.getDate()).padStart(2,'0')}`;}
-  return {amount,newC,interestSaved,monthsSaved,ira,payNow:amount+ira,newEnd};
+  return {amount,newC,interestSaved,monthsSaved:Math.round(monthsSaved),ira,payNow:amount+ira,newEnd};
 }
 function buildEarlyLoan(){
   const btns=LOANS.map((l,i)=>{const btn=h('button',{'data-i':i},loanLabel(l));
