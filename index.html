@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mes Prêts — Suivi LCL</title>
+<meta name="description" content="Suivi de prêts — capital restant dû, intérêts payés et échéancier interactif." />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#070a14;--card:rgba(255,255,255,.045);--card-strong:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.09);--border-strong:rgba(255,255,255,.16);
+    --txt:#eef2ff;--muted:#8b93b0;--violet:#7c5cff;--cyan:#22d3ee;--emerald:#34d399;
+    --amber:#fbbf24;--rose:#fb7185;--radius:22px;--shadow:0 24px 60px -20px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:'Inter','Noto Sans Georgian',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.5;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+  body::before,body::after{content:"";position:fixed;z-index:0;border-radius:50%;filter:blur(120px);opacity:.35;pointer-events:none;}
+  body::before{width:560px;height:560px;background:radial-gradient(circle,#7c5cff,transparent 70%);top:-180px;left:-120px;}
+  body::after{width:520px;height:520px;background:radial-gradient(circle,#22d3ee,transparent 70%);bottom:-200px;right:-140px;opacity:.25;}
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+
+  header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+  .brand h1{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:clamp(26px,5vw,40px);font-weight:700;letter-spacing:-.02em;
+    background:linear-gradient(120deg,#fff 10%,#b9c2ff 55%,#7ee9ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brand p{color:var(--muted);font-size:14px;margin-top:4px;}
+  .head-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .badge{font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);color:var(--muted);white-space:nowrap;}
+  .badge b{color:var(--txt);font-weight:600;}
+
+  .toggle{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:4px;gap:3px;}
+  .toggle button{appearance:none;border:0;background:transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.2s;white-space:nowrap;}
+  .toggle button:hover{color:var(--txt);}
+  .lang-toggle button.active{color:#fff;background:linear-gradient(120deg,var(--violet),#5b8cff);}
+
+  .segmented{display:inline-flex;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:5px;gap:4px;margin-bottom:22px;flex-wrap:wrap;}
+  .segmented button{appearance:none;border:0;background:transparent;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;padding:9px 18px;border-radius:10px;cursor:pointer;transition:.22s;white-space:nowrap;}
+  .segmented button:hover{color:var(--txt);}
+  .segmented button.active{color:#fff;background:linear-gradient(120deg,var(--violet),#5b8cff);box-shadow:0 8px 22px -8px rgba(124,92,255,.8);}
+
+  .cursor-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:22px;backdrop-filter:blur(14px);box-shadow:var(--shadow);}
+  .cursor-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+  .cursor-head .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);}
+  .cursor-date{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:clamp(20px,4vw,28px);font-weight:600;}
+  .cursor-state{font-size:12.5px;margin-top:7px;display:flex;align-items:center;gap:7px;color:var(--emerald);}
+  .cursor-state.off{color:var(--amber);}
+  .cursor-state .sdot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
+  .cursor-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .pill-btn{appearance:none;border:1px solid var(--border-strong);background:var(--card-strong);color:var(--txt);font-family:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;transition:.2s;}
+  .pill-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .pill-btn.solid{background:linear-gradient(120deg,var(--violet),#5b8cff);border:0;color:#fff;}
+  .pill-btn.solid.attn{animation:pulse 1.7s infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(124,92,255,.55)}50%{box-shadow:0 0 0 8px rgba(124,92,255,0)}}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;outline:none;cursor:pointer;
+    background:var(--track,linear-gradient(90deg,var(--violet) 0%,var(--cyan) 30%,rgba(255,255,255,.12) 30%));}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:4px solid var(--violet);box-shadow:0 4px 16px rgba(124,92,255,.7);cursor:grab;transition:transform .12s;}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.18);cursor:grabbing;}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--violet);box-shadow:0 4px 16px rgba(124,92,255,.7);cursor:grab;}
+  .range-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:10px;}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px;}
+  .kpi{position:relative;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px;overflow:hidden;backdrop-filter:blur(14px);transition:.25s;}
+  .kpi:hover{transform:translateY(-3px);border-color:var(--border-strong);}
+  .kpi .k-lbl{font-size:12px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:7px;}
+  .kpi .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .kpi .k-val{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:clamp(22px,3.4vw,30px);font-weight:700;margin-top:10px;letter-spacing:-.01em;}
+  .kpi .k-sub{font-size:12.5px;color:var(--muted);margin-top:6px;min-height:1em;}
+  .kpi .k-sub b{color:var(--txt);}
+  .kpi.hero{grid-column:1/-1;background:linear-gradient(135deg,rgba(124,92,255,.20),rgba(34,211,238,.10));border-color:rgba(124,92,255,.35);}
+  .kpi.hero .k-val{font-size:clamp(34px,8vw,56px);}
+  .glow{position:absolute;width:120px;height:120px;border-radius:50%;filter:blur(50px);right:-30px;top:-30px;opacity:.5;}
+  .progress{height:9px;border-radius:999px;background:rgba(255,255,255,.08);margin-top:14px;overflow:hidden;}
+  .progress > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--emerald),var(--cyan));transition:width .6s cubic-bezier(.2,.7,.2,1);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;backdrop-filter:blur(14px);box-shadow:var(--shadow);margin-bottom:22px;}
+  .panel-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel-head h2{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:18px;font-weight:600;}
+  .metric-toggle button.active[data-metric=capital]{background:rgba(124,92,255,.85);color:#fff;}
+  .metric-toggle button.active[data-metric=interets]{background:rgba(251,191,36,.9);color:#1a1400;}
+  .chart-box{position:relative;width:100%;}
+  svg.chart{width:100%;height:auto;display:block;overflow:visible;touch-action:none;}
+  .tip{position:absolute;transform:translate(-50%,-115%);background:rgba(10,14,28,.95);border:1px solid var(--border-strong);border-radius:12px;padding:9px 12px;font-size:12.5px;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow);opacity:0;transition:opacity .15s;}
+  .tip .t-d{color:var(--muted);font-size:11px;margin-bottom:2px;}
+  .tip .t-v{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-weight:700;font-size:15px;}
+
+  .stack{height:34px;border-radius:12px;overflow:hidden;display:flex;border:1px solid var(--border);}
+  .stack > div{height:100%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#0b0f1a;transition:flex .5s;}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;}
+  .legend .item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
+  .legend .sw{width:12px;height:12px;border-radius:4px;}
+  .legend b{color:var(--txt);}
+
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+  .chip{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:13px 15px;}
+  .chip .c-l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  .chip .c-v{font-family:'Space Grotesk','Noto Sans Georgian',sans-serif;font-size:17px;font-weight:600;margin-top:5px;}
+
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:34px;line-height:1.7;}
+  footer b{color:var(--txt);}
+  @media (max-width:640px){.wrap{padding:20px 14px 50px;}.kpi{padding:15px;}.head-right{align-items:flex-start;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1 id="title">Mes Prêts</h1>
+      <p id="subtitle">—</p>
+    </div>
+    <div class="head-right">
+      <div class="toggle lang-toggle" id="langToggle">
+        <button data-lang="fr" class="active">FR</button>
+        <button data-lang="ka">ქართული</button>
+      </div>
+      <div class="badges" id="badges"></div>
+    </div>
+  </header>
+
+  <div class="segmented" id="seg"></div>
+
+  <div class="cursor-card">
+    <div class="cursor-head">
+      <div>
+        <div class="lbl" id="cursorLbl">—</div>
+        <div class="cursor-date" id="cursorDate">—</div>
+        <div class="cursor-state" id="cursorState"></div>
+      </div>
+      <div class="cursor-actions">
+        <button class="pill-btn solid" id="todayBtn">—</button>
+        <button class="pill-btn" id="endBtn">—</button>
+      </div>
+    </div>
+    <input type="range" id="slider" min="0" max="100" value="0" />
+    <div class="range-ends"><span id="rangeStart">—</span><span id="rangeEnd">—</span></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2 id="chartTitle">—</h2>
+      <div class="toggle metric-toggle" id="metricToggle">
+        <button data-metric="capital" class="active">—</button>
+        <button data-metric="interets">—</button>
+      </div>
+    </div>
+    <div class="chart-box">
+      <svg class="chart" id="chart" viewBox="0 0 820 340" preserveAspectRatio="none" role="img" aria-label="graph"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2 id="repartTitle">—</h2></div>
+    <div class="stack" id="stack"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2 id="infoTitle">—</h2></div>
+    <div class="info-grid" id="infoGrid"></div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ---------- safe DOM builders ---------- */
+function h(tag,attrs,...kids){const e=document.createElement(tag);
+  for(const k in (attrs||{})){const v=attrs[k];
+    if(k==='class')e.className=v;else if(k==='style')e.style.cssText=v;
+    else if(k.slice(0,2)==='on')e[k.toLowerCase()]=v;else if(v!=null)e.setAttribute(k,v);}
+  for(const kid of kids){if(kid==null||kid===false)continue;e.append(kid.nodeType?kid:document.createTextNode(String(kid)));}
+  return e;}
+const NS='http://www.w3.org/2000/svg';
+function s(tag,attrs,...kids){const e=document.createElementNS(NS,tag);
+  for(const k in (attrs||{}))if(attrs[k]!=null)e.setAttribute(k,attrs[k]);
+  for(const kid of kids){if(kid==null)continue;e.append(kid.nodeType?kid:document.createTextNode(String(kid)));}
+  return e;}
+const b=(t)=>h('b',null,t);
+
+/* ---------- translations ---------- */
+const T={
+  fr:{
+    title:"Mes Prêts", subtitle:"Suivi de l'échéancier · Crédit Lyonnais",
+    total:"Total des prêts", pret:"Prêt",
+    cursorPos:"Position du curseur", today:"↺ État actuel", end:"Fin du prêt",
+    atToday:"Vous êtes à l'état actuel (aujourd'hui)", notToday:"Curseur déplacé — cliquez « État actuel » pour revenir",
+    k_capitalRestant:"Capital restant dû", k_cumC:"Capital remboursé", k_cumI:"Intérêts payés",
+    k_cumA:"Assurance payée", k_mensualite:"Mensualité actuelle", k_prochaine:"Prochaine échéance",
+    subSurPre:"sur ", subSurPost:" emprunté", subCapital:" du capital", subReste:"reste ~", subTotalPrevu:"total prévu ",
+    parMois:"par mois", cumul:(n)=>`cumul ${n} prêts actifs`, felicitations:"félicitations !", solde:"Soldé 🎉",
+    chartCapital:"Capital restant dû dans le temps", chartInterets:"Intérêts cumulés payés dans le temps",
+    mtCapital:"Capital restant", mtInterets:"Intérêts cumulés",
+    repart:"Où part chaque euro (coût total du crédit)",
+    lCapital:"Capital", lInterets:"Intérêts", lAssurance:"Assurance", coutTotal:"Coût total du crédit",
+    infoTotal:"Détails — les deux prêts", infoOne:(l)=>"Détails — "+l,
+    cMontant:"Montant", cMontantEmp:"Montant emprunté", cTaux:"Taux nominal", cTaeg:"TAEG",
+    cDebut:"Début", cDebutDate:"Date de début", cFin:"Fin", cDerniere:"Dernière échéance",
+    cNum:"N° de prêt", cFranchise:"Franchise", cMois:(n)=>n+" mois", cCout:"Coût total crédit",
+    foot1:"Données extraites des tableaux d'amortissement ", foot1b:" · généré le ",
+    foot2:"Outil d'information personnel — les chiffres officiels de vos contrats font foi.",
+    months:['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.']
+  },
+  ka:{
+    title:"ჩემი სესხები", subtitle:"გადახდის გრაფიკი · Crédit Lyonnais",
+    total:"ყველა სესხი", pret:"სესხი",
+    cursorPos:"კურსორის პოზიცია", today:"↺ მიმდინარე მდგომარეობა", end:"სესხის ბოლო",
+    atToday:"თქვენ ხართ მიმდინარე მდგომარეობაში (დღეს)", notToday:"კურსორი გადაადგილდა — დააჭირეთ „მიმდინარე მდგომარეობა“ დასაბრუნებლად",
+    k_capitalRestant:"დარჩენილი ძირითადი თანხა", k_cumC:"დაფარული ძირითადი თანხა", k_cumI:"გადახდილი პროცენტი",
+    k_cumA:"გადახდილი დაზღვევა", k_mensualite:"მიმდინარე თვიური გადასახადი", k_prochaine:"შემდეგი გადახდა",
+    subSurPre:"სულ ნასესხები: ", subSurPost:"", subCapital:" ძირითადი თანხის", subReste:"დარჩა ~", subTotalPrevu:"სულ დაგეგმილი ",
+    parMois:"თვეში", cumul:(n)=>`ჯამი: ${n} აქტიური სესხი`, felicitations:"გილოცავთ!", solde:"დაფარულია 🎉",
+    chartCapital:"დარჩენილი ძირითადი თანხა დროში", chartInterets:"დაგროვილი გადახდილი პროცენტი დროში",
+    mtCapital:"დარჩენილი ძირითადი", mtInterets:"დაგროვილი პროცენტი",
+    repart:"სად მიდის თითოეული ევრო (კრედიტის სრული ღირებულება)",
+    lCapital:"ძირითადი თანხა", lInterets:"პროცენტი", lAssurance:"დაზღვევა", coutTotal:"კრედიტის სრული ღირებულება",
+    infoTotal:"დეტალები — ორივე სესხი", infoOne:(l)=>"დეტალები — "+l,
+    cMontant:"თანხა", cMontantEmp:"ნასესხები თანხა", cTaux:"ნომინალური განაკვეთი", cTaeg:"ეფექტური განაკვეთი (TAEG)",
+    cDebut:"დაწყება", cDebutDate:"დაწყების თარიღი", cFin:"დასასრული", cDerniere:"ბოლო გადახდა",
+    cNum:"სესხის ნომერი", cFranchise:"შეღავათიანი პერიოდი", cMois:(n)=>n+" თვე", cCout:"კრედიტის სრული ღირებულება",
+    foot1:"მონაცემები აღებულია ", foot1b:" ამორტიზაციის ცხრილებიდან · შექმნილია ",
+    foot2:"პირადი საინფორმაციო ხელსაწყო — ოფიციალური ციფრები იხილეთ თქვენს ხელშეკრულებაში.",
+    months:['იან.','თებ.','მარ.','აპრ.','მაი.','ივნ.','ივლ.','აგვ.','სექ.','ოქტ.','ნოე.','დეკ.']
+  }
+};
+let LANG='fr';
+const tr=()=>T[LANG];
+
+/* ---------- formatting ---------- */
+const eur =(n)=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(n||0);
+const eur0=(n)=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0);
+const pctf=(n)=>new Intl.NumberFormat('fr-FR',{maximumFractionDigits:1}).format(n)+' %';
+const toDate=(iso)=>{ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${parseInt(d)} ${tr().months[parseInt(m)-1]} ${y}`; };
+const debutISO=(fr)=>{ const [d,m,y]=fr.split('/'); return `${y}-${m}-${d}`; };
+
+/* ---------- data ---------- */
+const LOANS=LOAN_DATA.loans;
+const GENERATED=LOAN_DATA.genere_le;                 // date d'extraction des données (figée)
+const _now=new Date();                               // « aujourd'hui » = date réelle du navigateur
+const TODAY=`${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+const TIMELINE=[...new Set(LOANS.flatMap(l=>l.rows.map(r=>r.date)))].sort();
+const loanLabel=(l)=>tr().pret+' '+l.meta.label.split(' ').pop();
+
+function stateAt(loan,target){
+  const m=loan.meta, startISO=debutISO(m.debut);
+  if(target<startISO) return {active:false,capitalRestant:0,cumI:0,cumC:0,cumA:0,mensualite:0,prochaine:null};
+  const paid=loan.rows.filter(r=>r.date<=target);
+  if(paid.length===0) return {active:true,capitalRestant:m.montant_initial,cumI:0,cumC:0,cumA:0,mensualite:loan.rows[0].montant,prochaine:loan.rows[0]};
+  const last=paid[paid.length-1], next=loan.rows.find(r=>r.date>target)||null;
+  return {active:true,capitalRestant:last.capital_restant,cumI:last.cumInterets,cumC:last.cumCapital,cumA:last.cumAssurance,
+          mensualite:next?next.montant:0,prochaine:next};
+}
+function viewState(view,target){
+  const ls=view==='total'?LOANS:[LOANS[view]];
+  const a={capitalRestant:0,cumI:0,cumC:0,cumA:0,mensualite:0,montantInitial:0,totalInterets:0,totalAssurance:0,coutTotal:0,activeCount:0,prochaine:null};
+  for(const l of ls){
+    const st=stateAt(l,target);
+    a.capitalRestant+=st.capitalRestant; a.cumI+=st.cumI; a.cumC+=st.cumC; a.cumA+=st.cumA; a.mensualite+=st.mensualite;
+    a.montantInitial+=l.meta.montant_initial; a.totalInterets+=l.rows[l.rows.length-1].cumInterets;
+    a.totalAssurance+=l.meta.dont_assurance; a.coutTotal+=l.meta.cout_total;
+    if(st.active) a.activeCount++;
+    if(st.prochaine && (!a.prochaine || st.prochaine.date<a.prochaine)) a.prochaine=st.prochaine.date;
+  }
+  a.interetsRestants=Math.max(0,a.totalInterets-a.cumI);
+  return a;
+}
+const series=(view,metric)=>TIMELINE.map(d=>{const st=viewState(view,d);return {date:d,value:metric==='capital'?st.capitalRestant:st.cumI};});
+
+/* ---------- state ---------- */
+let VIEW='total', METRIC='capital', IDX=0;
+const displayed={};
+const KPI=[
+  {key:'capitalRestant',color:'var(--violet)',hero:true},
+  {key:'cumC',color:'var(--emerald)',bar:true},
+  {key:'cumI',color:'var(--amber)'},
+  {key:'cumA',color:'var(--cyan)'},
+  {key:'mensualite',color:'#a78bfa'},
+  {key:'prochaine',color:'var(--rose)',text:true},
+];
+const ref={};
+
+function buildKpis(){
+  const L=tr(), nodes=[];
+  KPI.forEach((c,i)=>{
+    const val=h('div',{class:'k-val',id:'kv'+i},'—'), sub=h('div',{class:'k-sub',id:'ks'+i});
+    const children=[h('span',{class:'glow',style:'background:'+c.color}),
+      h('div',{class:'k-lbl'},h('span',{class:'dot',style:'background:'+c.color}),L['k_'+c.key]),val,sub];
+    if(c.bar){const bf=h('span'); ref['bar'+i]=bf; children.push(h('div',{class:'progress'},bf));}
+    ref['val'+i]=val; ref['sub'+i]=sub;
+    nodes.push(h('div',{class:'kpi'+(c.hero?' hero':'')},...children));
+  });
+  document.getElementById('kpis').replaceChildren(...nodes);
+}
+function animate(key,to,el,fmt){
+  const from=displayed[key]??to; displayed[key]=to;
+  const t0=performance.now(),dur=520;
+  (function step(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);
+    el.textContent=fmt(from+(to-from)*e); if(k<1) requestAnimationFrame(step);})(t0);
+}
+
+function render(){
+  const L=tr(), date=TIMELINE[IDX], st=viewState(VIEW,date);
+  document.getElementById('cursorDate').textContent=toDate(date);
+  const frac=IDX/(TIMELINE.length-1)*100;
+  document.getElementById('slider').style.setProperty('--track',
+    `linear-gradient(90deg,var(--violet) 0%,var(--cyan) ${frac}%,rgba(255,255,255,.12) ${frac}%)`);
+
+  const progress=st.montantInitial?st.cumC/st.montantInitial*100:0;
+  animate('kv0'+VIEW,st.capitalRestant,ref.val0,eur);
+  animate('kv1'+VIEW,st.cumC,ref.val1,eur);
+  animate('kv2'+VIEW,st.cumI,ref.val2,eur);
+  animate('kv3'+VIEW,st.cumA,ref.val3,eur);
+  animate('kv4'+VIEW,st.mensualite,ref.val4,eur);
+  ref.val5.textContent=st.prochaine?toDate(st.prochaine):L.solde;
+  ref.sub0.replaceChildren(L.subSurPre,b(eur0(st.montantInitial)),L.subSurPost);
+  ref.sub1.replaceChildren(b(pctf(progress)),L.subCapital);
+  ref.sub2.replaceChildren(L.subReste,b(eur(st.interetsRestants)));
+  ref.sub3.replaceChildren(L.subTotalPrevu,b(eur(st.totalAssurance)));
+  ref.sub4.replaceChildren(st.activeCount>1?L.cumul(st.activeCount):L.parMois);
+  ref.sub5.replaceChildren(st.prochaine?'≈ '+eur(st.mensualite):L.felicitations);
+  ref.bar1.style.width=Math.min(100,progress)+'%';
+
+  const isNow=(IDX===idxForDate(TODAY));
+  const cs=document.getElementById('cursorState');
+  cs.className='cursor-state'+(isNow?'':' off');
+  cs.replaceChildren(h('span',{class:'sdot'}), isNow?L.atToday:L.notToday);
+  document.getElementById('todayBtn').classList.toggle('attn',!isNow);
+
+  renderRepart(st); renderInfo(); moveCursor();
+}
+
+function renderRepart(st){
+  const L=tr();
+  const parts=[{l:L.lCapital,v:st.montantInitial,c:'var(--emerald)'},
+               {l:L.lInterets,v:st.totalInterets,c:'var(--amber)'},
+               {l:L.lAssurance,v:st.totalAssurance,c:'var(--cyan)'}];
+  const tot=parts.reduce((a,p)=>a+p.v,0)||1;
+  document.getElementById('stack').replaceChildren(...parts.map(p=>{
+    const w=p.v/tot*100;
+    return h('div',{style:`flex:${p.v};background:${p.c}`,title:`${p.l}: ${eur(p.v)}`}, w>9?Math.round(w)+'%':'');}));
+  const items=parts.map(p=>h('span',{class:'item'},h('span',{class:'sw',style:'background:'+p.c}),p.l+' · ',b(eur(p.v))));
+  items.push(h('span',{class:'item'},L.coutTotal+' · ',b(eur(st.totalInterets+st.totalAssurance))));
+  document.getElementById('legend').replaceChildren(...items);
+}
+
+function chip(l,v){return h('div',{class:'chip'},h('div',{class:'c-l'},l),h('div',{class:'c-v'},v||'—'));}
+function renderInfo(){
+  const L=tr(), grid=document.getElementById('infoGrid'), title=document.getElementById('infoTitle');
+  if(VIEW==='total'){
+    title.textContent=L.infoTotal;
+    const nodes=[];
+    LOANS.forEach(l=>{const m=l.meta;
+      nodes.push(chip(loanLabel(l),''),chip(L.cMontant,eur0(m.montant_initial)),chip(L.cTaux,pctf(m.taux)),
+        chip(L.cTaeg,pctf(m.taeg)),chip(L.cDebut,m.debut),chip(L.cFin,toDate(l.rows[l.rows.length-1].date)));});
+    grid.replaceChildren(...nodes);
+  }else{
+    const l=LOANS[VIEW],m=l.meta; title.textContent=L.infoOne(loanLabel(l));
+    grid.replaceChildren(
+      chip(L.cNum,m.num_pret),chip(L.cMontantEmp,eur0(m.montant_initial)),chip(L.cTaux,pctf(m.taux)),
+      chip(L.cTaeg,pctf(m.taeg)),chip(L.cFranchise,L.cMois(m.franchise)),chip(L.cDebutDate,m.debut),
+      chip(L.cDerniere,toDate(l.rows[l.rows.length-1].date)),chip(L.cCout,eur(m.cout_total)));
+  }
+}
+
+/* ---------- chart ---------- */
+const W=820,H=340,PAD={l:58,r:14,t:18,b:30};
+let SERIES=[],SX,SY;
+function niceCeil(v){const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;
+  const m=n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10;return m*p;}
+function renderChart(){
+  const L=tr();
+  METRIC=document.querySelector('#metricToggle button.active').dataset.metric;
+  SERIES=series(VIEW,METRIC);
+  const accent=METRIC==='capital'?'#7c5cff':'#fbbf24', accent2=METRIC==='capital'?'#22d3ee':'#fb923c';
+  document.getElementById('chartTitle').textContent=METRIC==='capital'?L.chartCapital:L.chartInterets;
+  const niceMax=niceCeil(Math.max(1,...SERIES.map(p=>p.value)));
+  SX=i=>PAD.l+i/(SERIES.length-1)*(W-PAD.l-PAD.r);
+  SY=v=>H-PAD.b-(v/niceMax)*(H-PAD.t-PAD.b);
+  let d=`M ${SX(0)} ${SY(SERIES[0].value)}`;
+  for(let i=1;i<SERIES.length;i++) d+=` L ${SX(i)} ${SY(SERIES[i-1].value)} L ${SX(i)} ${SY(SERIES[i].value)}`;
+  const area=`${d} L ${SX(SERIES.length-1)} ${SY(0)} L ${SX(0)} ${SY(0)} Z`;
+  const defs=s('defs',null,
+    s('linearGradient',{id:'area',x1:0,y1:0,x2:0,y2:1},
+      s('stop',{offset:'0%','stop-color':accent,'stop-opacity':0.45}),
+      s('stop',{offset:'100%','stop-color':accent,'stop-opacity':0})),
+    s('linearGradient',{id:'line',x1:0,y1:0,x2:1,y2:0},
+      s('stop',{offset:'0%','stop-color':accent}),s('stop',{offset:'100%','stop-color':accent2})));
+  const g=[];
+  for(let i=0;i<=4;i++){const v=niceMax*i/4,yy=SY(v);
+    g.push(s('line',{x1:PAD.l,y1:yy,x2:W-PAD.r,y2:yy,stroke:'rgba(255,255,255,.07)'}));
+    g.push(s('text',{x:PAD.l-10,y:yy+4,'text-anchor':'end',fill:'#8b93b0','font-size':11},eur0(v)));}
+  let lastYr='';
+  SERIES.forEach((p,i)=>{const yr=p.date.slice(0,4);
+    if(yr!==lastYr){lastYr=yr; g.push(s('text',{x:SX(i),y:H-8,'text-anchor':'middle',fill:'#8b93b0','font-size':11},yr));}});
+  const curLine=s('line',{id:'curLine',stroke:'#fff','stroke-width':1.4,'stroke-dasharray':'4 4',opacity:0.6,x1:0,x2:0,y1:PAD.t,y2:H-PAD.b});
+  const curDot=s('circle',{id:'curDot',r:6.5,fill:'#fff',stroke:accent,'stroke-width':3,cx:0,cy:0});
+  const svgEl=document.getElementById('chart');
+  svgEl.replaceChildren(defs,...g,
+    s('path',{d:area,fill:'url(#area)'}),
+    s('path',{d:d,fill:'none',stroke:'url(#line)','stroke-width':2.6,'stroke-linejoin':'round'}),curLine,curDot);
+  const scrub=(ev)=>{const r=svgEl.getBoundingClientRect();
+    const cx=((ev.touches?ev.touches[0].clientX:ev.clientX)-r.left)/r.width*W;
+    let i=Math.round((cx-PAD.l)/(W-PAD.l-PAD.r)*(SERIES.length-1));
+    setIdx(Math.max(0,Math.min(SERIES.length-1,i)));};
+  svgEl.onmousemove=scrub; svgEl.ontouchmove=scrub;
+  moveCursor();
+}
+function moveCursor(){
+  if(!SX) return;
+  const svgEl=document.getElementById('chart');
+  const xi=SX(IDX), yi=SY(SERIES[IDX].value);
+  const line=svgEl.querySelector('#curLine'), dot=svgEl.querySelector('#curDot');
+  if(line){line.setAttribute('x1',xi);line.setAttribute('x2',xi);}
+  if(dot){dot.setAttribute('cx',xi);dot.setAttribute('cy',yi);}
+  const tip=document.getElementById('tip'), r=svgEl.getBoundingClientRect();
+  tip.style.left=(xi/W*r.width)+'px'; tip.style.top=(yi/H*r.height)+'px'; tip.style.opacity=1;
+  tip.replaceChildren(h('div',{class:'t-d'},toDate(SERIES[IDX].date)),h('div',{class:'t-v'},eur(SERIES[IDX].value)));
+}
+
+/* ---------- slider helpers ---------- */
+function idxForDate(target){let i=TIMELINE.findIndex(d=>d>target);
+  return i<=0?(TIMELINE[0]>target?0:TIMELINE.length-1):i-1;}
+function setIdx(i){IDX=i;document.getElementById('slider').value=i;render();}
+
+/* ---------- segmented (rebuilt per language) ---------- */
+let segBtns=[];
+function buildSeg(){
+  const L=tr();
+  segBtns=[h('button',{'data-v':'total'},L.total),...LOANS.map((l,i)=>h('button',{'data-v':i},loanLabel(l)))];
+  segBtns.forEach(btn=>{
+    const v=btn.dataset.v==='total'?'total':parseInt(btn.dataset.v);
+    btn.classList.toggle('active', v===VIEW);
+    btn.onclick=()=>{VIEW=btn.dataset.v==='total'?'total':parseInt(btn.dataset.v);
+      segBtns.forEach(x=>x.classList.toggle('active',x===btn)); renderChart(); render();};
+  });
+  document.getElementById('seg').replaceChildren(...segBtns);
+}
+
+/* ---------- apply all text for current language ---------- */
+function refreshTexts(){
+  const L=tr();
+  document.documentElement.lang=LANG;
+  document.getElementById('title').textContent=L.title;
+  document.getElementById('subtitle').textContent=L.subtitle;
+  document.getElementById('cursorLbl').textContent=L.cursorPos;
+  document.getElementById('todayBtn').textContent=L.today;
+  document.getElementById('endBtn').textContent=L.end;
+  document.getElementById('repartTitle').textContent=L.repart;
+  document.querySelector('#metricToggle button[data-metric=capital]').textContent=L.mtCapital;
+  document.querySelector('#metricToggle button[data-metric=interets]').textContent=L.mtInterets;
+  document.getElementById('rangeStart').textContent=toDate(TIMELINE[0]);
+  document.getElementById('rangeEnd').textContent=toDate(TIMELINE[TIMELINE.length-1]);
+  document.getElementById('badges').replaceChildren(
+    h('span',{class:'badge'},'👤 ',b(LOAN_DATA.emprunteurs.join(' & '))),
+    h('span',{class:'badge'},'🏦 ',b(LOAN_DATA.preteur)));
+  document.getElementById('foot').replaceChildren(L.foot1,b('LCL'),L.foot1b+toDate(GENERATED)+'.',h('br'),L.foot2);
+  buildSeg(); buildKpis(); renderChart(); render();
+}
+
+/* ---------- init ---------- */
+function init(){
+  document.querySelectorAll('#langToggle button').forEach(btn=>btn.onclick=()=>{
+    LANG=btn.dataset.lang;
+    document.querySelectorAll('#langToggle button').forEach(x=>x.classList.toggle('active',x===btn));
+    refreshTexts();});
+  document.querySelectorAll('#metricToggle button').forEach(btn=>btn.onclick=()=>{
+    document.querySelectorAll('#metricToggle button').forEach(x=>x.classList.toggle('active',x===btn));
+    renderChart();});
+  const sl=document.getElementById('slider');
+  sl.min=0; sl.max=TIMELINE.length-1;
+  sl.oninput=()=>{IDX=parseInt(sl.value);render();};
+  document.getElementById('todayBtn').onclick=()=>setIdx(idxForDate(TODAY));
+  document.getElementById('endBtn').onclick=()=>setIdx(TIMELINE.length-1);
+  IDX=idxForDate(TODAY); sl.value=IDX;
+  refreshTexts();
+  window.addEventListener('resize',moveCursor);
+}
+init();
+</script>
+</body>
+</html>
